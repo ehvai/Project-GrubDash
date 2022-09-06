@@ -2,7 +2,6 @@ const path = require("path");
 
 // Use the existing order data
 const orders = require(path.resolve("src/data/orders-data"));
-const dishes = require(path.resolve("src/data/dishes-data"))
 
 // Use this function to assigh ID's when necessary
 const nextId = require("../utils/nextId");
@@ -109,6 +108,38 @@ function routeOrderIdMatchesOrderId(req, res, next) {
   });
 }
 
+// validation for the status property
+function statusPropertyIsValid(req, res, next) {
+    const { data: { status } = {} } = req.body;
+    if ( status === "pending" || status === "preparing" || status === "out-for-delivery" || status === "delivered") {
+      return next();
+    }
+    next({ status: 400, message: "Order must have a status of pending, preparing, out-for-delivery, delivered" });
+  };
+
+// validation for the status of delivered
+function statusIsNotDelivered(req, res, next) {
+  const { data: { status } ={} } = req.body;
+  if(status === "delivered"){
+    return next({
+      status: 400,
+      message: "A delivered order cannot be changed"
+    })
+  }
+
+  next();
+}
+
+// validation for the status of pending for deletes
+function statusIsPending(req, res, next){
+  if(res.locals.order.status !=="pending"){
+    return next({
+      status: 400,
+      message: "An order cannot be deleted unless it is pending"
+    })
+  }
+  next();
+}
 
 // --- Fetch functions for the API
 
@@ -133,12 +164,21 @@ const read = (req, res) => {
 }
 
 const update = (req, res) =>{
-  const { data: { status } = {} } = req.body;
+  const { data: { deliverTo, mobileNumber, status } = {} } = req.body;
   const foundOrder = res.locals.order
 
-  foundOrder.name = status;
+  foundOrder.deliverTo = deliverTo;
+  foundOrder.mobileNumber = mobileNumber;
+  foundOrder.status = status;
 
   res.json({ data: foundOrder });
+}
+
+const destroy = (req, res) =>{
+  const { orderId } = req.params;
+  const index = orders.findIndex((order)=> order.id === orderId)
+  orders.splice(index, 1)
+  res.sendStatus(204)
 }
 
 // --- Exports
@@ -161,9 +201,20 @@ module.exports = {
   update: [
     hasData,
     orderExists,
+    dishExists,
+    dishIsArray,
+    dishesIsEmpty,
     bodyDataHas("deliverTo"),
     bodyDataHas("mobileNumber"),
+    statusPropertyIsValid,
     routeOrderIdMatchesOrderId,
+    quantityIsValid,
+    statusIsNotDelivered,
     update,
+  ],
+  delete: [
+    orderExists,
+    statusIsPending,
+    destroy
   ]
 };
