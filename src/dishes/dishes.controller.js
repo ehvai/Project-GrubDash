@@ -76,11 +76,11 @@ function routeDishIdMatchesDishId(req, res, next) {
 
 // --- Functions to responde to fetches for API
 
-const list = (req, res) => {
+function list(req, res){
   res.json({ data: dishes });
 };
 
-const create = (req, res) => {
+function create(req, res){
   const { data: { name, description, price, image_url } = {} } = req.body;
   const newDish = {
     id: nextId(),
@@ -93,11 +93,11 @@ const create = (req, res) => {
   res.status(201).json({ data: newDish });
 };
 
-const read = (req, res) => {
+function read(req, res){
   res.status(200).json({ data: res.locals.dish });
 };
 
-const update = (req, res) => {
+function update(req, res){
   const { data: { name, description, price, image_url } = {} } = req.body;
   const foundDish = res.locals.dish
 

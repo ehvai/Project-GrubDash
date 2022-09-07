@@ -143,11 +143,11 @@ function statusIsPending(req, res, next){
 
 // --- Fetch functions for the API
 
-const list = (req, res) => {
+function list(req, res){
   res.status(200).json({ data: orders });
 };
 
-const create = (req, res) => {
+function create(req, res){
     const { data: { deliverTo, mobileNumber, dishes} = {} } = req.body;
     const newOrder = {
       id: nextId(),
@@ -159,11 +159,11 @@ const create = (req, res) => {
     res.status(201).json({ data: newOrder });
 };
 
-const read = (req, res) => {
+function read(req, res){
   res.json({ data: res.locals.order})
 }
 
-const update = (req, res) =>{
+function update(req, res){
   const { data: { deliverTo, mobileNumber, status } = {} } = req.body;
   const foundOrder = res.locals.order
 
@@ -174,7 +174,7 @@ const update = (req, res) =>{
   res.json({ data: foundOrder });
 }
 
-const destroy = (req, res) =>{
+function destroy(req, res){
   const { orderId } = req.params;
   const index = orders.findIndex((order)=> order.id === orderId)
   orders.splice(index, 1)
